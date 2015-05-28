@@ -169,12 +169,16 @@ module Sprockets
     # Cleanup old assets in the compile directory. By default it will
     # keep the latest version plus 2 backups.
     def clean(keep = 2)
+      logger.info("Keeping #{keep} backups for each assets")
       self.assets.keys.each do |logical_path|
         # Get assets sorted by ctime, newest first
         assets = backups_for(logical_path)
 
         # Keep the last N backups
         assets = assets[keep..-1] || []
+        if assets.empty?
+          logger.info("No backups for #{logical_path}")
+        end
 
         # Remove old assets
         assets.each { |path, _| remove(path) }
@@ -200,6 +204,7 @@ module Sprockets
             assets[logical_path] != filename
         }.sort_by { |filename, attrs|
           # Sort by timestamp
+          p [filename, Time.parse(attrs['mtime'])]
           Time.parse(attrs['mtime'])
         }.reverse
       end
